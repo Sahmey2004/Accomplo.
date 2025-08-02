@@ -762,7 +762,7 @@ const Index = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Week Stats */}
                 <div className="text-center p-6 bg-muted/20 rounded-lg">
-                  <div className="text-3xl font-bold text-primary mb-2">
+                  <div className="text-3xl font-bold text-white mb-2">
                     {isLoadingAccomplishments ? '...' : currentWeekAccomplishments?.length || 0}
                   </div>
                   <div className="text-sm text-gray-300">
@@ -771,7 +771,7 @@ const Index = () => {
                 </div>
                 
                 <div className="text-center p-6 bg-muted/20 rounded-lg">
-                  <div className="text-3xl font-bold text-yellow-500 mb-2">
+                  <div className="text-3xl font-bold text-gray-200 mb-2">
                     {isLoadingAccomplishments ? '...' : currentWeekAccomplishments?.filter(a => a.type === 'big').length || 0}
                   </div>
                   <div className="text-sm text-gray-300 flex items-center justify-center gap-1">
@@ -781,7 +781,7 @@ const Index = () => {
                 </div>
                 
                 <div className="text-center p-6 bg-muted/20 rounded-lg">
-                  <div className="text-3xl font-bold text-blue-500 mb-2">
+                  <div className="text-3xl font-bold text-gray-200 mb-2">
                     {isLoadingAccomplishments ? '...' : currentWeekAccomplishments?.filter(a => a.type === 'small').length || 0}
                   </div>
                   <div className="text-sm text-gray-300 flex items-center justify-center gap-1">
