@@ -5,15 +5,41 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, Loader2, Settings, User, Lock } from 'lucide-react';
-import { useState } from 'react';
+import { Eye, EyeOff, Loader2, Settings, User, Lock, Plus, Trophy, Star, Calendar, Clock } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
+interface Accomplishment {
+  id: string;
+  content: string;
+  type: 'big' | 'small';
+  category: string;
+  month_year: string;
+  created_at: string;
+  profile_id: string;
+}
+
+interface Profile {
+  id: string;
+  user_id: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  created_at: string;
+  updated_at: string;
+}
 
 const Index = () => {
   const { user, signOut, updatePassword } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  // Settings state
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
   const [settingsView, setSettingsView] = useState<'main' | 'password' | 'username'>('main');
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
@@ -26,6 +52,133 @@ const Index = () => {
   });
   const [usernameForm, setUsernameForm] = useState({
     displayName: ''
+  });
+
+  // Accomplishment state
+  const [isAccomplishmentDialogOpen, setIsAccomplishmentDialogOpen] = useState(false);
+  const [accomplishmentForm, setAccomplishmentForm] = useState({
+    content: '',
+    type: '' as 'big' | 'small' | '',
+    category: ''
+  });
+
+  // Get current week info
+  const getCurrentWeekInfo = () => {
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday
+    startOfWeek.setHours(0, 0, 0, 0);
+    
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6); // Saturday
+    endOfWeek.setHours(23, 59, 59, 999);
+    
+    const isWeekEnd = now.getDay() === 0 && now.getHours() >= 18; // Sunday after 6 PM
+    
+    return {
+      startOfWeek,
+      endOfWeek,
+      isWeekEnd,
+      weekLabel: `Week of ${startOfWeek.toLocaleDateString()}`
+    };
+  };
+
+  const { startOfWeek, endOfWeek, isWeekEnd, weekLabel } = getCurrentWeekInfo();
+
+  // Fetch user profile
+  const { data: profile } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+      
+      // Create profile if it doesn't exist
+      if (!data) {
+        const { data: newProfile, error: createError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: user.id,
+            display_name: user.user_metadata?.display_name || null,
+            avatar_url: user.user_metadata?.avatar_url || null
+          })
+          .select()
+          .single();
+        
+        if (createError) throw createError;
+        return newProfile;
+      }
+      
+      return data;
+    },
+    enabled: !!user
+  });
+
+  // Fetch current week's accomplishments
+  const { data: weekAccomplishments = [], isLoading: isLoadingAccomplishments } = useQuery({
+    queryKey: ['accomplishments', profile?.id, startOfWeek.toISOString()],
+    queryFn: async () => {
+      if (!profile) return [];
+      
+      const { data, error } = await supabase
+        .from('accomplishments')
+        .select('*')
+        .eq('profile_id', profile.id)
+        .gte('created_at', startOfWeek.toISOString())
+        .lte('created_at', endOfWeek.toISOString())
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data as Accomplishment[];
+    },
+    enabled: !!profile
+  });
+
+  // Add accomplishment mutation
+  const addAccomplishmentMutation = useMutation({
+    mutationFn: async (accomplishment: { content: string; type: 'big' | 'small'; category: string }) => {
+      if (!profile) throw new Error('Profile not found');
+      
+      const { data, error } = await supabase
+        .from('accomplishments')
+        .insert({
+          content: accomplishment.content,
+          type: accomplishment.type,
+          category: accomplishment.category,
+          profile_id: profile.id,
+          month_year: new Date().toISOString().slice(0, 7) // YYYY-MM format
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['accomplishments'] });
+      toast({
+        title: "Success!",
+        description: "Your accomplishment has been recorded.",
+      });
+      setAccomplishmentForm({ content: '', type: '', category: '' });
+      setIsAccomplishmentDialogOpen(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to record accomplishment. Please try again.",
+        variant: "destructive",
+      });
+      console.error('Error adding accomplishment:', error);
+    }
   });
 
   const handleSignOut = async () => {
