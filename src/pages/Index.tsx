@@ -511,7 +511,7 @@ const Index = () => {
                   <Button
                     type="submit"
                     disabled={isUpdatingPassword}
-                    className="bg-gradient-primary hover:opacity-90"
+                    className="bg-gray-600 hover:bg-gray-700"
                   >
                     {isUpdatingPassword && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Update Password
@@ -566,7 +566,7 @@ const Index = () => {
                   <Button
                     type="submit"
                     disabled={isUpdatingUsername}
-                    className="bg-gradient-primary hover:opacity-90"
+                    className="bg-gray-600 hover:bg-gray-700"
                   >
                     {isUpdatingUsername && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Update Name
@@ -681,7 +681,7 @@ const Index = () => {
                 </div>
                 <Dialog open={isAccomplishmentDialogOpen} onOpenChange={setIsAccomplishmentDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button className="bg-gradient-primary hover:opacity-90">
+                    <Button className="bg-gray-600 hover:bg-gray-700">
                       <Plus className="h-4 w-4 mr-2" />
                       Add Accomplishment
                     </Button>
@@ -757,7 +757,7 @@ const Index = () => {
                         <Button
                           type="submit"
                           disabled={addAccomplishmentMutation.isPending}
-                          className="bg-gradient-primary hover:opacity-90"
+                          className="bg-gray-600 hover:bg-gray-700"
                         >
                           {addAccomplishmentMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                           Record Achievement
