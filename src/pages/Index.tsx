@@ -1,4 +1,5 @@
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -11,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
   const { user, signOut, updatePassword } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
   const [settingsView, setSettingsView] = useState<'main' | 'password' | 'username'>('main');
@@ -36,8 +38,8 @@ const Index = () => {
           variant: "destructive",
         });
       } else {
-        // Force redirect to auth page
-        window.location.href = '/auth';
+        // Use React Router navigation
+        navigate('/auth', { replace: true });
       }
     } catch (error) {
       console.error('Sign out error:', error);
