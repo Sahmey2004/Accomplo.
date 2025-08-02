@@ -535,29 +535,316 @@ const Index = () => {
       
       <main className="container py-8">
         <div className="max-w-4xl mx-auto">
-          <Card className="bg-glass-bg border-glass-border backdrop-blur-glass">
+          {/* Week Summary Card */}
+          <Card className="bg-glass-bg border-glass-border backdrop-blur-glass mb-8">
             <CardHeader>
-              <CardTitle className="text-3xl font-bold text-center">
-                Track Your Accomplishments
-              </CardTitle>
-              <CardDescription className="text-center text-lg">
-                Keep track of your achievements and celebrate your progress
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-2xl font-bold flex items-center gap-2">
+                    <Calendar className="h-6 w-6" />
+                    {weekLabel}
+                  </CardTitle>
+                  <CardDescription className="mt-2">
+                    {isWeekEnd 
+                      ? "🎉 Week complete! Your accomplishments are now revealed below."
+                      : "Keep going! Your accomplishments will be revealed at the end of the week."
+                    }
+                  </CardDescription>
+                </div>
+                <Dialog open={isAccomplishmentDialogOpen} onOpenChange={setIsAccomplishmentDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-gradient-primary hover:opacity-90">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Accomplishment
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Record Your Accomplishment</DialogTitle>
+                      <DialogDescription>
+                        Add a new achievement to your weekly collection. It will be revealed at the end of the week!
+                      </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleAccomplishmentSubmit} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="accomplishment-type">Type</Label>
+                        <Select 
+                          value={accomplishmentForm.type} 
+                          onValueChange={(value) => handleAccomplishmentInputChange('type', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose accomplishment type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="small">
+                              <div className="flex items-center gap-2">
+                                <Star className="h-4 w-4 text-blue-500" />
+                                Small Win
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="big">
+                              <div className="flex items-center gap-2">
+                                <Trophy className="h-4 w-4 text-yellow-500" />
+                                Big Achievement
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="accomplishment-content">Accomplishment</Label>
+                        <Textarea
+                          id="accomplishment-content"
+                          value={accomplishmentForm.content}
+                          onChange={(e) => handleAccomplishmentInputChange('content', e.target.value)}
+                          placeholder="Describe your accomplishment..."
+                          rows={3}
+                          required
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="accomplishment-category">Side Note</Label>
+                        <Input
+                          id="accomplishment-category"
+                          value={accomplishmentForm.category}
+                          onChange={(e) => handleAccomplishmentInputChange('category', e.target.value)}
+                          placeholder="What is this achievement about?"
+                          required
+                        />
+                      </div>
+                      
+                      <div className="flex justify-end gap-3 pt-4">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setIsAccomplishmentDialogOpen(false);
+                            setAccomplishmentForm({ content: '', type: '', category: '' });
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="submit"
+                          disabled={addAccomplishmentMutation.isPending}
+                          className="bg-gradient-primary hover:opacity-90"
+                        >
+                          {addAccomplishmentMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                          Record Achievement
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-12">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Week Stats */}
+                <div className="text-center p-6 bg-muted/20 rounded-lg">
+                  <div className="text-3xl font-bold text-primary mb-2">
+                    {isLoadingAccomplishments ? '...' : weekAccomplishments.length}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Total This Week
+                  </div>
+                </div>
+                
+                <div className="text-center p-6 bg-muted/20 rounded-lg">
+                  <div className="text-3xl font-bold text-yellow-500 mb-2">
+                    {isLoadingAccomplishments ? '...' : weekAccomplishments.filter(a => a.type === 'big').length}
+                  </div>
+                  <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
+                    <Trophy className="h-4 w-4" />
+                    Big Achievements
+                  </div>
+                </div>
+                
+                <div className="text-center p-6 bg-muted/20 rounded-lg">
+                  <div className="text-3xl font-bold text-blue-500 mb-2">
+                    {isLoadingAccomplishments ? '...' : weekAccomplishments.filter(a => a.type === 'small').length}
+                  </div>
+                  <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
+                    <Star className="h-4 w-4" />
+                    Small Wins
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Accomplishments Reveal */}
+          {isWeekEnd && weekAccomplishments.length > 0 && (
+            <Card className="bg-glass-bg border-glass-border backdrop-blur-glass">
+              <CardHeader>
+                <CardTitle className="text-2xl font-bold text-center">
+                  🎉 Your Week's Accomplishments!
+                </CardTitle>
+                <CardDescription className="text-center">
+                  Congratulations on all your achievements this week!
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {weekAccomplishments.map((accomplishment) => (
+                    <div
+                      key={accomplishment.id}
+                      className="p-4 bg-muted/10 rounded-lg border border-muted/20"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 mt-1">
+                          {accomplishment.type === 'big' ? (
+                            <Trophy className="h-5 w-5 text-yellow-500" />
+                          ) : (
+                            <Star className="h-5 w-5 text-blue-500" />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge variant={accomplishment.type === 'big' ? 'default' : 'secondary'}>
+                              {accomplishment.type === 'big' ? 'Big Achievement' : 'Small Win'}
+                            </Badge>
+                            <span className="text-sm text-muted-foreground">
+                              {new Date(accomplishment.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="text-foreground mb-2">{accomplishment.content}</p>
+                          <p className="text-sm text-muted-foreground italic">
+                            About: {accomplishment.category}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* No accomplishments yet */}
+          {!isWeekEnd && weekAccomplishments.length === 0 && (
+            <Card className="bg-glass-bg border-glass-border backdrop-blur-glass">
+              <CardContent className="text-center py-12">
+                <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Ready to Start Tracking?</h3>
+                <p className="text-muted-foreground mb-6">
+                  Record your first accomplishment of the week! Your achievements will be revealed on Sunday evening.
+                </p>
+                <Dialog open={isAccomplishmentDialogOpen} onOpenChange={setIsAccomplishmentDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-gradient-primary hover:opacity-90">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Your First Accomplishment
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Record Your Accomplishment</DialogTitle>
+                      <DialogDescription>
+                        Add a new achievement to your weekly collection. It will be revealed at the end of the week!
+                      </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleAccomplishmentSubmit} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="accomplishment-type">Type</Label>
+                        <Select 
+                          value={accomplishmentForm.type} 
+                          onValueChange={(value) => handleAccomplishmentInputChange('type', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose accomplishment type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="small">
+                              <div className="flex items-center gap-2">
+                                <Star className="h-4 w-4 text-blue-500" />
+                                Small Win
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="big">
+                              <div className="flex items-center gap-2">
+                                <Trophy className="h-4 w-4 text-yellow-500" />
+                                Big Achievement
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="accomplishment-content">Accomplishment</Label>
+                        <Textarea
+                          id="accomplishment-content"
+                          value={accomplishmentForm.content}
+                          onChange={(e) => handleAccomplishmentInputChange('content', e.target.value)}
+                          placeholder="Describe your accomplishment..."
+                          rows={3}
+                          required
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="accomplishment-category">Side Note</Label>
+                        <Input
+                          id="accomplishment-category"
+                          value={accomplishmentForm.category}
+                          onChange={(e) => handleAccomplishmentInputChange('category', e.target.value)}
+                          placeholder="What is this achievement about?"
+                          required
+                        />
+                      </div>
+                      
+                      <div className="flex justify-end gap-3 pt-4">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setIsAccomplishmentDialogOpen(false);
+                            setAccomplishmentForm({ content: '', type: '', category: '' });
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="submit"
+                          disabled={addAccomplishmentMutation.isPending}
+                          className="bg-gradient-primary hover:opacity-90"
+                        >
+                          {addAccomplishmentMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                          Record Achievement
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Waiting for week end */}
+          {!isWeekEnd && weekAccomplishments.length > 0 && (
+            <Card className="bg-glass-bg border-glass-border backdrop-blur-glass">
+              </CardTitle>
+              <CardDescription className="text-center text-lg">
+                <CardTitle className="text-2xl font-bold text-center flex items-center justify-center gap-2">
+                  <Clock className="h-6 w-6" />
+                  Accomplishments Locked
+            </CardHeader>
+                <CardDescription className="text-center">
+                  Your accomplishments are safely recorded and will be revealed on Sunday evening. Keep adding more!
                 <p className="text-muted-foreground">
                   Your accomplishment tracking system is ready! 
                   The database has been set up with user profiles and proper security.
-                </p>
-                <div className="mt-6 space-y-2">
-                  <p className="text-sm text-muted-foreground">
-                    Next steps: Build your accomplishment tracking interface
+                  <p className="text-muted-foreground">
+                    The big reveal happens at the end of the week!
                   </p>
                 </div>
               </div>
             </CardContent>
           </Card>
+          )}
         </div>
       </main>
     </div>
