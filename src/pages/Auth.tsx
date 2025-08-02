@@ -85,121 +85,13 @@ export default function Auth() {
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    setIsLoading(false);
+    // In offline mode, password reset is not available
+    toast({
+      title: "Offline Mode",
+      description: "Password reset is not available in offline mode. Please contact support if you need help.",
+      variant: "destructive",
+    });
   };
-
-  const handleRecoverySubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (formData.password.length < 6) {
-      toast({
-        title: "Password too short",
-        description: "Password must be at least 6 characters long.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsLoading(true);
-    const { error } = await updatePassword(formData.password);
-
-    if (error) {
-      toast({
-        title: "Password update failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Password updated successfully",
-        description: "Your password has been updated. You can now sign in with your new password.",
-      });
-      setFormData({ email: '', password: '', displayName: '' });
-      navigate('/auth');
-    }
-    setIsLoading(false);
-  };
-
-  // Password Recovery Form
-  if (isRecovery) {
-    if (!isRecoveryReady) {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4">
-          <Card className="w-full max-w-md bg-glass-bg border-glass-border backdrop-blur-glass">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-                <p className="mt-4 text-muted-foreground">Verifying recovery link...</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      );
-    }
-
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4">
-        <Card className="w-full max-w-md bg-glass-bg border-glass-border backdrop-blur-glass">
-          <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
-              <img 
-                src="https://ik.imagekit.io/1de4hfu56k/logo.png?updatedAt=1754163451179" 
-                alt="Accomplo Logo" 
-                className="h-16 w-auto"
-                onError={(e) => {
-                  console.error('Logo failed to load:', e);
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            </div>
-            <CardTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              <span className="text-gray-200">Set New Password</span>
-            </CardTitle>
-            <CardDescription>
-              Your recovery link is valid. Enter your new password below.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleRecoverySubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="new-password">New Password</Label>
-                <div className="relative">
-                  <Input
-                    id="new-password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    placeholder="Enter your new password (min 6 characters)"
-                    required
-                    className="bg-muted/50 border-muted pr-10"
-                    minLength={6}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </Button>
-                </div>
-              </div>
-              <Button 
-                type="submit" 
-                className="w-full bg-gray-600 hover:bg-gray-700"
-                disabled={isLoading}
-              >
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Update Password
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   // Reset Password Form
   if (mode === 'reset') {
