@@ -208,7 +208,7 @@ export default function Auth() {
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
               <img 
-                src="/logo.png" 
+                src="https://ik.imagekit.io/1de4hfu56k/logo.png?updatedAt=1754163451179" 
                 alt="Accomplo Logo" 
                 className="h-16 w-auto"
                 onError={(e) => {
@@ -274,7 +274,7 @@ export default function Auth() {
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
               <img 
-                src="/logo.png" 
+                src="https://ik.imagekit.io/1de4hfu56k/logo.png?updatedAt=1754163451179" 
                 alt="Accomplo Logo" 
                 className="h-16 w-auto"
                 onError={(e) => {
@@ -338,7 +338,7 @@ export default function Auth() {
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
               <img 
-                src="/logo.png" 
+                src="https://ik.imagekit.io/1de4hfu56k/logo.png?updatedAt=1754163451179" 
                 alt="Accomplo Logo" 
                 className="h-16 w-auto"
                 onError={(e) => {
@@ -439,7 +439,7 @@ export default function Auth() {
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <img 
-              src="/logo.png" 
+              src="https://ik.imagekit.io/1de4hfu56k/logo.png?updatedAt=1754163451179" 
               alt="Accomplo Logo" 
               className="h-16 w-auto"
               onError={(e) => {
