@@ -9,10 +9,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, Loader2, Settings, User, Lock, Plus, Trophy, Star, Calendar, Clock } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Settings, User, Lock, Plus, Trophy, Star, Calendar, Clock, ChevronDown, ChevronUp } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import React from 'react';
 
 interface Accomplishment {
   id: string;
@@ -31,6 +32,15 @@ interface Profile {
   avatar_url: string | null;
   created_at: string;
   updated_at: string;
+}
+
+interface WeekData {
+  weekStart: Date;
+  weekEnd: Date;
+  weekLabel: string;
+  accomplishments: Accomplishment[];
+  isCurrentWeek: boolean;
+  isRevealed: boolean;
 }
 
 const Index = () => {
@@ -62,18 +72,20 @@ const Index = () => {
     category: ''
   });
 
-  // Get current week info
-  const getCurrentWeekInfo = () => {
-    const now = new Date();
-    const startOfWeek = new Date(now);
-    startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday
+  // Expanded weeks state
+  const [expandedWeeks, setExpandedWeeks] = useState<Set<string>>(new Set());
+
+  // Get week info for any date
+  const getWeekInfo = (date: Date) => {
+    const startOfWeek = new Date(date);
+    startOfWeek.setDate(date.getDate() - date.getDay()); // Sunday
     startOfWeek.setHours(0, 0, 0, 0);
     
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(startOfWeek.getDate() + 6); // Saturday
     endOfWeek.setHours(23, 59, 59, 999);
     
-    const isWeekEnd = now.getDay() === 0 && now.getHours() >= 18; // Sunday after 6 PM
+    const isWeekEnd = date.getDay() === 0 && date.getHours() >= 18; // Sunday after 6 PM
     
     return {
       startOfWeek,
@@ -81,6 +93,12 @@ const Index = () => {
       isWeekEnd,
       weekLabel: `Week of ${startOfWeek.toLocaleDateString()}`
     };
+  };
+
+  // Get current week info
+  const getCurrentWeekInfo = () => {
+    const now = new Date();
+    return getWeekInfo(now);
   };
 
   const { startOfWeek, endOfWeek, isWeekEnd, weekLabel } = getCurrentWeekInfo();
@@ -122,9 +140,9 @@ const Index = () => {
     enabled: !!user
   });
 
-  // Fetch current week's accomplishments
-  const { data: weekAccomplishments = [], isLoading: isLoadingAccomplishments } = useQuery({
-    queryKey: ['accomplishments', profile?.id, startOfWeek.toISOString()],
+  // Fetch all accomplishments for the user
+  const { data: allAccomplishments = [], isLoading: isLoadingAccomplishments } = useQuery({
+    queryKey: ['accomplishments', profile?.id],
     queryFn: async () => {
       if (!profile) return [];
       
@@ -132,8 +150,6 @@ const Index = () => {
         .from('accomplishments')
         .select('*')
         .eq('profile_id', profile.id)
-        .gte('created_at', startOfWeek.toISOString())
-        .lte('created_at', endOfWeek.toISOString())
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -141,6 +157,58 @@ const Index = () => {
     },
     enabled: !!profile
   });
+
+  // Process accomplishments into weeks
+  const weeklyData: WeekData[] = React.useMemo(() => {
+    if (!allAccomplishments.length) return [];
+
+    // Group accomplishments by week
+    const weekMap = new Map<string, Accomplishment[]>();
+    
+    allAccomplishments.forEach(accomplishment => {
+      const accomplishmentDate = new Date(accomplishment.created_at);
+      const weekInfo = getWeekInfo(accomplishmentDate);
+      const weekKey = weekInfo.startOfWeek.toISOString();
+      
+      if (!weekMap.has(weekKey)) {
+        weekMap.set(weekKey, []);
+      }
+      weekMap.get(weekKey)!.push(accomplishment);
+    });
+
+    // Convert to WeekData array and sort by most recent first
+    const weeks: WeekData[] = Array.from(weekMap.entries()).map(([weekKey, accomplishments]) => {
+      const weekStart = new Date(weekKey);
+      const weekInfo = getWeekInfo(weekStart);
+      const now = new Date();
+      const isCurrentWeek = now >= weekInfo.startOfWeek && now <= weekInfo.endOfWeek;
+      const isRevealed = weekInfo.isWeekEnd || !isCurrentWeek;
+      
+      return {
+        weekStart: weekInfo.startOfWeek,
+        weekEnd: weekInfo.endOfWeek,
+        weekLabel: weekInfo.weekLabel,
+        accomplishments,
+        isCurrentWeek,
+        isRevealed
+      };
+    }).sort((a, b) => b.weekStart.getTime() - a.weekStart.getTime());
+
+    return weeks;
+  }, [allAccomplishments]);
+
+  // Get current week's accomplishments
+  const currentWeekAccomplishments = weeklyData.find(week => week.isCurrentWeek)?.accomplishments || [];
+
+  const toggleWeekExpansion = (weekKey: string) => {
+    const newExpanded = new Set(expandedWeeks);
+    if (newExpanded.has(weekKey)) {
+      newExpanded.delete(weekKey);
+    } else {
+      newExpanded.add(weekKey);
+    }
+    setExpandedWeeks(newExpanded);
+  };
 
   // Add accomplishment mutation
   const addAccomplishmentMutation = useMutation({
@@ -688,7 +756,7 @@ const Index = () => {
                 {/* Week Stats */}
                 <div className="text-center p-6 bg-muted/20 rounded-lg">
                   <div className="text-3xl font-bold text-primary mb-2">
-                    {isLoadingAccomplishments ? '...' : weekAccomplishments.length}
+                    {isLoadingAccomplishments ? '...' : currentWeekAccomplishments.length}
                   </div>
                   <div className="text-sm text-muted-foreground">
                     Total This Week
@@ -697,7 +765,7 @@ const Index = () => {
                 
                 <div className="text-center p-6 bg-muted/20 rounded-lg">
                   <div className="text-3xl font-bold text-yellow-500 mb-2">
-                    {isLoadingAccomplishments ? '...' : weekAccomplishments.filter(a => a.type === 'big').length}
+                    {isLoadingAccomplishments ? '...' : currentWeekAccomplishments.filter(a => a.type === 'big').length}
                   </div>
                   <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
                     <Trophy className="h-4 w-4" />
@@ -707,7 +775,7 @@ const Index = () => {
                 
                 <div className="text-center p-6 bg-muted/20 rounded-lg">
                   <div className="text-3xl font-bold text-blue-500 mb-2">
-                    {isLoadingAccomplishments ? '...' : weekAccomplishments.filter(a => a.type === 'small').length}
+                    {isLoadingAccomplishments ? '...' : currentWeekAccomplishments.filter(a => a.type === 'small').length}
                   </div>
                   <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
                     <Star className="h-4 w-4" />
@@ -718,179 +786,153 @@ const Index = () => {
             </CardContent>
           </Card>
 
-          {/* Accomplishments Reveal */}
-          {isWeekEnd && weekAccomplishments.length > 0 && (
-            <Card className="bg-glass-bg border-glass-border backdrop-blur-glass">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-center">
-                  🎉 Your Week's Accomplishments!
-                </CardTitle>
-                <CardDescription className="text-center">
-                  Congratulations on all your achievements this week!
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {weekAccomplishments.map((accomplishment) => (
-                    <div
-                      key={accomplishment.id}
-                      className="p-4 bg-muted/10 rounded-lg border border-muted/20"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0 mt-1">
-                          {accomplishment.type === 'big' ? (
-                            <Trophy className="h-5 w-5 text-yellow-500" />
-                          ) : (
-                            <Star className="h-5 w-5 text-blue-500" />
+          {/* Weekly Accomplishments Sections */}
+          <div className="space-y-6">
+            {isLoadingAccomplishments ? (
+              <Card className="bg-glass-bg border-glass-border backdrop-blur-glass">
+                <CardContent className="text-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary mb-4" />
+                  <p className="text-muted-foreground">Loading your accomplishments...</p>
+                </CardContent>
+              </Card>
+            ) : weeklyData.length === 0 ? (
+              <Card className="bg-glass-bg border-glass-border backdrop-blur-glass">
+                <CardContent className="text-center py-12">
+                  <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Ready to Start Tracking?</h3>
+                  <p className="text-muted-foreground mb-6">
+                    Record your first accomplishment! Your achievements will be revealed at the end of each week.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              weeklyData.map((week) => {
+                const weekKey = week.weekStart.toISOString();
+                const isExpanded = expandedWeeks.has(weekKey);
+                
+                return (
+                  <Card key={weekKey} className="bg-glass-bg border-glass-border backdrop-blur-glass">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Calendar className="h-5 w-5" />
+                          <div>
+                            <CardTitle className="text-lg">
+                              {week.weekLabel}
+                              {week.isCurrentWeek && (
+                                <Badge variant="secondary" className="ml-2">Current Week</Badge>
+                              )}
+                            </CardTitle>
+                            <CardDescription>
+                              {week.accomplishments.length} accomplishment{week.accomplishments.length !== 1 ? 's' : ''} recorded
+                              {week.isCurrentWeek && !week.isRevealed && (
+                                <span className="ml-2">• Reveals Sunday evening</span>
+                              )}
+                            </CardDescription>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          {/* Week stats */}
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground mr-4">
+                            <div className="flex items-center gap-1">
+                              <Trophy className="h-4 w-4 text-yellow-500" />
+                              <span>{week.accomplishments.filter(a => a.type === 'big').length}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Star className="h-4 w-4 text-blue-500" />
+                              <span>{week.accomplishments.filter(a => a.type === 'small').length}</span>
+                            </div>
+                          </div>
+                          
+                          {week.isRevealed && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleWeekExpansion(weekKey)}
+                            >
+                              {isExpanded ? (
+                                <ChevronUp className="h-4 w-4" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4" />
+                              )}
+                            </Button>
                           )}
                         </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Badge variant={accomplishment.type === 'big' ? 'default' : 'secondary'}>
-                              {accomplishment.type === 'big' ? 'Big Achievement' : 'Small Win'}
-                            </Badge>
-                            <span className="text-sm text-muted-foreground">
-                              {new Date(accomplishment.created_at).toLocaleDateString()}
-                            </span>
-                          </div>
-                          <p className="text-foreground mb-2">{accomplishment.content}</p>
-                          <p className="text-sm text-muted-foreground italic">
-                            About: {accomplishment.category}
+                      </div>
+                    </CardHeader>
+                    
+                    <CardContent>
+                      {!week.isRevealed ? (
+                        <div className="text-center py-8">
+                          <div className="text-4xl mb-4">🔒</div>
+                          <p className="text-muted-foreground">
+                            {week.isCurrentWeek 
+                              ? "Your accomplishments will be revealed at the end of this week!"
+                              : "Accomplishments are locked until week end"
+                            }
                           </p>
                         </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* No accomplishments yet */}
-          {!isWeekEnd && weekAccomplishments.length === 0 && (
-            <Card className="bg-glass-bg border-glass-border backdrop-blur-glass">
-              <CardContent className="text-center py-12">
-                <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Ready to Start Tracking?</h3>
-                <p className="text-muted-foreground mb-6">
-                  Record your first accomplishment of the week! Your achievements will be revealed on Sunday evening.
-                </p>
-                <Dialog open={isAccomplishmentDialogOpen} onOpenChange={setIsAccomplishmentDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="bg-gradient-primary hover:opacity-90">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Your First Accomplishment
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>Record Your Accomplishment</DialogTitle>
-                      <DialogDescription>
-                        Add a new achievement to your weekly collection. It will be revealed at the end of the week!
-                      </DialogDescription>
-                    </DialogHeader>
-                    <form onSubmit={handleAccomplishmentSubmit} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="accomplishment-type">Type</Label>
-                        <Select 
-                          value={accomplishmentForm.type} 
-                          onValueChange={(value) => handleAccomplishmentInputChange('type', value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Choose accomplishment type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="small">
-                              <div className="flex items-center gap-2">
-                                <Star className="h-4 w-4 text-blue-500" />
-                                Small Win
+                      ) : isExpanded ? (
+                        <div className="space-y-4">
+                          {week.accomplishments.map((accomplishment) => (
+                            <div
+                              key={accomplishment.id}
+                              className="p-4 bg-muted/10 rounded-lg border border-muted/20"
+                            >
+                              <div className="flex items-start gap-3">
+                                <div className="flex-shrink-0 mt-1">
+                                  {accomplishment.type === 'big' ? (
+                                    <Trophy className="h-5 w-5 text-yellow-500" />
+                                  ) : (
+                                    <Star className="h-5 w-5 text-blue-500" />
+                                  )}
+                                </div>
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <Badge variant={accomplishment.type === 'big' ? 'default' : 'secondary'}>
+                                      {accomplishment.type === 'big' ? 'Big Achievement' : 'Small Win'}
+                                    </Badge>
+                                    <span className="text-sm text-muted-foreground">
+                                      {new Date(accomplishment.created_at).toLocaleDateString()}
+                                    </span>
+                                  </div>
+                                  <p className="text-foreground mb-2">{accomplishment.content}</p>
+                                  <p className="text-sm text-muted-foreground italic">
+                                    About: {accomplishment.category}
+                                  </p>
+                                </div>
                               </div>
-                            </SelectItem>
-                            <SelectItem value="big">
-                              <div className="flex items-center gap-2">
-                                <Trophy className="h-4 w-4 text-yellow-500" />
-                                Big Achievement
-                              </div>
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="accomplishment-content">Accomplishment</Label>
-                        <Textarea
-                          id="accomplishment-content"
-                          value={accomplishmentForm.content}
-                          onChange={(e) => handleAccomplishmentInputChange('content', e.target.value)}
-                          placeholder="Describe your accomplishment..."
-                          rows={3}
-                          required
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="accomplishment-category">Side Note</Label>
-                        <Input
-                          id="accomplishment-category"
-                          value={accomplishmentForm.category}
-                          onChange={(e) => handleAccomplishmentInputChange('category', e.target.value)}
-                          placeholder="What is this achievement about?"
-                          required
-                        />
-                      </div>
-                      
-                      <div className="flex justify-end gap-3 pt-4">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => {
-                            setIsAccomplishmentDialogOpen(false);
-                            setAccomplishmentForm({ content: '', type: '', category: '' });
-                          }}
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          type="submit"
-                          disabled={addAccomplishmentMutation.isPending}
-                          className="bg-gradient-primary hover:opacity-90"
-                        >
-                          {addAccomplishmentMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                          Record Achievement
-                        </Button>
-                      </div>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Waiting for week end */}
-          {!isWeekEnd && weekAccomplishments.length > 0 && (
-            <Card className="bg-glass-bg border-glass-border backdrop-blur-glass">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-center flex items-center justify-center gap-2">
-                  <Clock className="h-6 w-6" />
-                  Accomplishments Locked
-                </CardTitle>
-                <CardDescription className="text-center">
-                  Your accomplishments are safely recorded and will be revealed on Sunday evening. Keep adding more!
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <div className="text-6xl mb-4">🔒</div>
-                  <p className="text-muted-foreground text-lg mb-4">
-                    {weekAccomplishments.length} accomplishment{weekAccomplishments.length !== 1 ? 's' : ''} recorded this week
-                  </p>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-4">
+                          <p className="text-muted-foreground">
+                            Click to expand and view {week.accomplishments.length} accomplishment{week.accomplishments.length !== 1 ? 's' : ''}
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })
+            )}
+            
+            {/* No accomplishments this week message */}
+            {currentWeekAccomplishments.length === 0 && weeklyData.length > 0 && (
+              <Card className="bg-glass-bg border-glass-border backdrop-blur-glass">
+                <CardContent className="text-center py-8">
+                  <Clock className="h-8 w-8 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No accomplishments this week yet</h3>
                   <p className="text-muted-foreground">
-                    The big reveal happens at the end of the week!
+                    Start recording your achievements for this week!
                   </p>
                 </div>
               </CardContent>
             </Card>
-          )}
+            )}
+          </div>
         </div>
       </main>
     </div>
