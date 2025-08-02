@@ -773,7 +773,7 @@ const Index = () => {
           </h1>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground">
-              Welcome, {user?.user_metadata?.display_name || user?.email}
+              Welcome, {user?.user_metadata?.display_name || user?.email || ''}
             </span>
             <Dialog open={isSettingsDialogOpen} onOpenChange={setIsSettingsDialogOpen}>
               <DialogTrigger asChild>
