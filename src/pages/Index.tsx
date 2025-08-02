@@ -627,11 +627,17 @@ const Index = () => {
       <header className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-14 items-center justify-between">
           <div className="flex items-center">
-            <img 
-              src="/logo.png" 
-              alt="Accomplishment Tracker" 
-              className="h-12 w-auto"
-            />
+            <div className="flex items-center">
+              <img 
+                src="/logo.png" 
+                alt="Accomplo Logo" 
+                className="h-12 w-auto"
+                onError={(e) => {
+                  console.error('Logo failed to load:', e);
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            </div>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-300">
