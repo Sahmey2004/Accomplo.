@@ -85,7 +85,9 @@ const Index = () => {
     endOfWeek.setDate(startOfWeek.getDate() + 6); // Saturday
     endOfWeek.setHours(23, 59, 59, 999);
     
-    const isWeekEnd = date.getDay() === 0 && date.getHours() >= 18; // Sunday after 6 PM
+    // Check if it's Sunday after 6 PM (week end reveal time)
+    const now = new Date();
+    const isWeekEnd = now.getDay() === 0 && now.getHours() >= 18;
     
     return {
       startOfWeek,
@@ -102,64 +104,6 @@ const Index = () => {
   };
 
   const { startOfWeek, endOfWeek, isWeekEnd, weekLabel } = getCurrentWeekInfo();
-
-  // Dummy data function for demonstration
-  const getDummyAccomplishments = (): Accomplishment[] => {
-    const now = new Date();
-    const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
-    
-    return [
-      // Last week accomplishments
-      {
-        id: 'dummy-1',
-        content: 'Completed a challenging coding project that I had been working on for weeks',
-        type: 'big',
-        category: 'Professional Development',
-        month_year: lastWeek.toISOString().slice(0, 7),
-        created_at: new Date(lastWeek.getTime() + 1 * 24 * 60 * 60 * 1000).toISOString(),
-        profile_id: 'dummy-profile'
-      },
-      {
-        id: 'dummy-2',
-        content: 'Went for a morning run despite feeling tired',
-        type: 'small',
-        category: 'Health & Fitness',
-        month_year: lastWeek.toISOString().slice(0, 7),
-        created_at: new Date(lastWeek.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-        profile_id: 'dummy-profile'
-      },
-      {
-        id: 'dummy-3',
-        content: 'Organized my workspace and decluttered my desk',
-        type: 'small',
-        category: 'Personal Organization',
-        month_year: lastWeek.toISOString().slice(0, 7),
-        created_at: new Date(lastWeek.getTime() + 4 * 24 * 60 * 60 * 1000).toISOString(),
-        profile_id: 'dummy-profile'
-      },
-      {
-        id: 'dummy-4',
-        content: 'Successfully presented my quarterly report to the leadership team',
-        type: 'big',
-        category: 'Career Achievement',
-        month_year: lastWeek.toISOString().slice(0, 7),
-        created_at: new Date(lastWeek.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-        profile_id: 'dummy-profile'
-      },
-      
-      // Two weeks ago accomplishments
-      {
-        id: 'dummy-5',
-        content: 'Learned a new programming language and built my first app with it',
-        type: 'big',
-        category: 'Skill Development',
-        month_year: twoWeeksAgo.toISOString().slice(0, 7),
-        created_at: new Date(twoWeeksAgo.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-        profile_id: 'dummy-profile'
-      }
-    ];
-  };
 
   // Fetch user profile
   const { data: profile } = useQuery({
@@ -218,8 +162,8 @@ const Index = () => {
 
   // Process accomplishments into weeks
   const weeklyData: WeekData[] = React.useMemo(() => {
-    // Add dummy data for demonstration when no real accomplishments exist
-    const accomplishmentsToProcess = allAccomplishments.length > 0 ? allAccomplishments : getDummyAccomplishments();
+    // Use only real accomplishments from the database
+    const accomplishmentsToProcess = allAccomplishments;
 
     // Group accomplishments by week
     const weekMap = new Map<string, Accomplishment[]>();
@@ -241,7 +185,11 @@ const Index = () => {
       const weekInfo = getWeekInfo(weekStart);
       const now = new Date();
       const isCurrentWeek = now >= weekInfo.startOfWeek && now <= weekInfo.endOfWeek;
-      const isRevealed = weekInfo.isWeekEnd || !isCurrentWeek;
+      
+      // Reveal logic: 
+      // - Past weeks are always revealed
+      // - Current week is revealed only on Sunday after 6 PM
+      const isRevealed = !isCurrentWeek || (isCurrentWeek && now.getDay() === 0 && now.getHours() >= 18);
       
       return {
         weekStart: weekInfo.startOfWeek,
@@ -815,7 +763,7 @@ const Index = () => {
                 {/* Week Stats */}
                 <div className="text-center p-6 bg-muted/20 rounded-lg">
                   <div className="text-3xl font-bold text-primary mb-2">
-                    {isLoadingAccomplishments ? '...' : currentWeekAccomplishments.length}
+                    {isLoadingAccomplishments ? '...' : currentWeekAccomplishments?.length || 0}
                   </div>
                   <div className="text-sm text-muted-foreground">
                     Total This Week
@@ -824,7 +772,7 @@ const Index = () => {
                 
                 <div className="text-center p-6 bg-muted/20 rounded-lg">
                   <div className="text-3xl font-bold text-yellow-500 mb-2">
-                    {isLoadingAccomplishments ? '...' : currentWeekAccomplishments.filter(a => a.type === 'big').length}
+                    {isLoadingAccomplishments ? '...' : currentWeekAccomplishments?.filter(a => a.type === 'big').length || 0}
                   </div>
                   <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
                     <Trophy className="h-4 w-4" />
@@ -834,7 +782,7 @@ const Index = () => {
                 
                 <div className="text-center p-6 bg-muted/20 rounded-lg">
                   <div className="text-3xl font-bold text-blue-500 mb-2">
-                    {isLoadingAccomplishments ? '...' : currentWeekAccomplishments.filter(a => a.type === 'small').length}
+                    {isLoadingAccomplishments ? '...' : currentWeekAccomplishments?.filter(a => a.type === 'small').length || 0}
                   </div>
                   <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
                     <Star className="h-4 w-4" />
@@ -855,7 +803,7 @@ const Index = () => {
                 </CardContent>
               </Card>
             ) : weeklyData.length === 0 ? (
-              <Card className="bg-glass-bg border-glass-border backdrop-blur-glass">
+              <Card className="bg-glass-bg border-glass-border backdrop-blur-glass mb-8">
                 <CardContent className="text-center py-12">
                   <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                   <h3 className="text-lg font-semibold mb-2">Ready to Start Tracking?</h3>
@@ -925,12 +873,17 @@ const Index = () => {
                       {!week.isRevealed ? (
                         <div className="text-center py-8">
                           <div className="text-4xl mb-4">🔒</div>
-                          <p className="text-muted-foreground">
+                          <div className="space-y-2">
+                            <p className="text-muted-foreground font-medium">
+                              {week.accomplishments.length} accomplishment{week.accomplishments.length !== 1 ? 's' : ''} recorded this week
+                            </p>
+                            <p className="text-sm text-muted-foreground">
                             {week.isCurrentWeek 
-                              ? "Your accomplishments will be revealed at the end of this week!"
-                              : "Accomplishments are locked until week end"
+                              ? "Your accomplishments will be revealed on Sunday after 6 PM!"
+                              : "Accomplishments were locked until week end"
                             }
-                          </p>
+                            </p>
+                          </div>
                         </div>
                       ) : isExpanded ? (
                         <div className="space-y-4">
@@ -976,19 +929,6 @@ const Index = () => {
                   </Card>
                 );
               })
-            )}
-            
-            {/* No accomplishments this week message */}
-            {currentWeekAccomplishments.length === 0 && weeklyData.length > 0 && (
-              <Card className="bg-glass-bg border-glass-border backdrop-blur-glass">
-                <CardContent className="text-center py-8">
-                  <Clock className="h-8 w-8 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No accomplishments this week yet</h3>
-                  <p className="text-muted-foreground">
-                    Start recording your achievements for this week!
-                  </p>
-                </CardContent>
-              </Card>
             )}
           </div>
         </div>
