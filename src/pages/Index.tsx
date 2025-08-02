@@ -882,7 +882,9 @@ const Index = () => {
                     <CardContent>
                       {!week.isRevealed ? (
                         <div className="text-center py-8">
-                          <div className="text-4xl mb-4">🔒</div>
+                          <div className="mb-4">
+                            <Lock className="h-12 w-12 mx-auto text-white" />
+                          </div>
                           <div className="space-y-2">
                             <p className="text-gray-300 font-medium">
                               {week.accomplishments.length} accomplishment{week.accomplishments.length !== 1 ? 's' : ''} recorded this week
