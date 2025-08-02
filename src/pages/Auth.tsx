@@ -209,8 +209,12 @@ export default function Auth() {
             <div className="flex justify-center mb-4">
               <img 
                 src="/logo.png" 
-                alt="Accomplo" 
+                alt="Accomplo Logo" 
                 className="h-16 w-auto"
+                onError={(e) => {
+                  console.error('Logo failed to load:', e);
+                  e.currentTarget.style.display = 'none';
+                }}
               />
             </div>
             <CardTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
@@ -271,8 +275,12 @@ export default function Auth() {
             <div className="flex justify-center mb-4">
               <img 
                 src="/logo.png" 
-                alt="Accomplo" 
+                alt="Accomplo Logo" 
                 className="h-16 w-auto"
+                onError={(e) => {
+                  console.error('Logo failed to load:', e);
+                  e.currentTarget.style.display = 'none';
+                }}
               />
             </div>
             <CardTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
@@ -331,8 +339,12 @@ export default function Auth() {
             <div className="flex justify-center mb-4">
               <img 
                 src="/logo.png" 
-                alt="Accomplo" 
+                alt="Accomplo Logo" 
                 className="h-16 w-auto"
+                onError={(e) => {
+                  console.error('Logo failed to load:', e);
+                  e.currentTarget.style.display = 'none';
+                }}
               />
             </div>
             <CardTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
@@ -428,8 +440,12 @@ export default function Auth() {
           <div className="flex justify-center mb-4">
             <img 
               src="/logo.png" 
-              alt="Accomplo" 
+              alt="Accomplo Logo" 
               className="h-16 w-auto"
+              onError={(e) => {
+                console.error('Logo failed to load:', e);
+                e.currentTarget.style.display = 'none';
+              }}
             />
           </div>
           <CardTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
