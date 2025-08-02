@@ -206,6 +206,13 @@ export default function Auth() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4">
         <Card className="w-full max-w-md bg-glass-bg border-glass-border backdrop-blur-glass">
           <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <img 
+                src="/logo.png" 
+                alt="Accomplo" 
+                className="h-16 w-auto"
+              />
+            </div>
             <CardTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
               Set New Password
             </CardTitle>
@@ -261,6 +268,13 @@ export default function Auth() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4">
         <Card className="w-full max-w-md bg-glass-bg border-glass-border backdrop-blur-glass">
           <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <img 
+                src="/logo.png" 
+                alt="Accomplo" 
+                className="h-16 w-auto"
+              />
+            </div>
             <CardTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
               Reset Password
             </CardTitle>
@@ -314,6 +328,13 @@ export default function Auth() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4">
         <Card className="w-full max-w-md bg-glass-bg border-glass-border backdrop-blur-glass">
           <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <img 
+                src="/logo.png" 
+                alt="Accomplo" 
+                className="h-16 w-auto"
+              />
+            </div>
             <CardTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
               Create Account
             </CardTitle>
@@ -404,6 +425,13 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4">
       <Card className="w-full max-w-md bg-glass-bg border-glass-border backdrop-blur-glass">
         <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <img 
+              src="/logo.png" 
+              alt="Accomplo" 
+              className="h-16 w-auto"
+            />
+          </div>
           <CardTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
             Welcome Back
           </CardTitle>
