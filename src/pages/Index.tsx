@@ -103,6 +103,64 @@ const Index = () => {
 
   const { startOfWeek, endOfWeek, isWeekEnd, weekLabel } = getCurrentWeekInfo();
 
+  // Dummy data function for demonstration
+  const getDummyAccomplishments = (): Accomplishment[] => {
+    const now = new Date();
+    const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+    
+    return [
+      // Last week accomplishments
+      {
+        id: 'dummy-1',
+        content: 'Completed a challenging coding project that I had been working on for weeks',
+        type: 'big',
+        category: 'Professional Development',
+        month_year: lastWeek.toISOString().slice(0, 7),
+        created_at: new Date(lastWeek.getTime() + 1 * 24 * 60 * 60 * 1000).toISOString(),
+        profile_id: 'dummy-profile'
+      },
+      {
+        id: 'dummy-2',
+        content: 'Went for a morning run despite feeling tired',
+        type: 'small',
+        category: 'Health & Fitness',
+        month_year: lastWeek.toISOString().slice(0, 7),
+        created_at: new Date(lastWeek.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+        profile_id: 'dummy-profile'
+      },
+      {
+        id: 'dummy-3',
+        content: 'Organized my workspace and decluttered my desk',
+        type: 'small',
+        category: 'Personal Organization',
+        month_year: lastWeek.toISOString().slice(0, 7),
+        created_at: new Date(lastWeek.getTime() + 4 * 24 * 60 * 60 * 1000).toISOString(),
+        profile_id: 'dummy-profile'
+      },
+      {
+        id: 'dummy-4',
+        content: 'Successfully presented my quarterly report to the leadership team',
+        type: 'big',
+        category: 'Career Achievement',
+        month_year: lastWeek.toISOString().slice(0, 7),
+        created_at: new Date(lastWeek.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+        profile_id: 'dummy-profile'
+      },
+      
+      // Two weeks ago accomplishments
+      {
+        id: 'dummy-5',
+        content: 'Learned a new programming language and built my first app with it',
+        type: 'big',
+        category: 'Skill Development',
+        month_year: twoWeeksAgo.toISOString().slice(0, 7),
+        created_at: new Date(twoWeeksAgo.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+        profile_id: 'dummy-profile'
+      }
+    ];
+  };
+
   // Fetch user profile
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
@@ -197,64 +255,6 @@ const Index = () => {
 
     return weeks;
   }, [allAccomplishments]);
-
-  // Dummy data function for demonstration
-  const getDummyAccomplishments = (): Accomplishment[] => {
-    const now = new Date();
-    const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
-    
-    return [
-      // Last week accomplishments
-      {
-        id: 'dummy-1',
-        content: 'Completed a challenging coding project that I had been working on for weeks',
-        type: 'big',
-        category: 'Professional Development',
-        month_year: lastWeek.toISOString().slice(0, 7),
-        created_at: new Date(lastWeek.getTime() + 1 * 24 * 60 * 60 * 1000).toISOString(),
-        profile_id: 'dummy-profile'
-      },
-      {
-        id: 'dummy-2',
-        content: 'Went for a morning run despite feeling tired',
-        type: 'small',
-        category: 'Health & Fitness',
-        month_year: lastWeek.toISOString().slice(0, 7),
-        created_at: new Date(lastWeek.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-        profile_id: 'dummy-profile'
-      },
-      {
-        id: 'dummy-3',
-        content: 'Organized my workspace and decluttered my desk',
-        type: 'small',
-        category: 'Personal Organization',
-        month_year: lastWeek.toISOString().slice(0, 7),
-        created_at: new Date(lastWeek.getTime() + 4 * 24 * 60 * 60 * 1000).toISOString(),
-        profile_id: 'dummy-profile'
-      },
-      {
-        id: 'dummy-4',
-        content: 'Successfully presented my quarterly report to the leadership team',
-        type: 'big',
-        category: 'Career Achievement',
-        month_year: lastWeek.toISOString().slice(0, 7),
-        created_at: new Date(lastWeek.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-        profile_id: 'dummy-profile'
-      },
-      
-      // Two weeks ago accomplishments
-      {
-        id: 'dummy-5',
-        content: 'Learned a new programming language and built my first app with it',
-        type: 'big',
-        category: 'Skill Development',
-        month_year: twoWeeksAgo.toISOString().slice(0, 7),
-        created_at: new Date(twoWeeksAgo.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-        profile_id: 'dummy-profile'
-      }
-    ];
-  };
 
   // Get current week's accomplishments
   const currentWeekAccomplishments = weeklyData.find(week => week.isCurrentWeek)?.accomplishments || [];
