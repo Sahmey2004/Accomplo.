@@ -1,36 +1,30 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useOfflineAuth } from '@/hooks/useOfflineAuth';
-import { Loader2 } from 'lucide-react';
+import { ReactNode } from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ProtectedRouteProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
-export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { user, loading } = useOfflineAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!loading && !user) {
-      navigate('/auth');
-    }
-  }, [user, loading, navigate]);
+const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-subtle">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-          <p className="mt-4 text-muted-foreground">Loading...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-300">Loading...</p>
         </div>
       </div>
     );
   }
 
   if (!user) {
-    return null;
+    return <Navigate to="/auth" replace />;
   }
 
   return <>{children}</>;
-}
+};
+
+export default ProtectedRoute;
