@@ -298,6 +298,49 @@ const Index = () => {
     setIsUpdatingUsername(false);
   };
 
+  const handleAccomplishmentInputChange = (field: string, value: string) => {
+    setAccomplishmentForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleAccomplishmentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!accomplishmentForm.content.trim()) {
+      toast({
+        title: "Content required",
+        description: "Please describe your accomplishment",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!accomplishmentForm.type) {
+      toast({
+        title: "Type required",
+        description: "Please select accomplishment type",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!accomplishmentForm.category.trim()) {
+      toast({
+        title: "Side note required",
+        description: "Please add what this achievement is about",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    addAccomplishmentMutation.mutate({
+      content: accomplishmentForm.content.trim(),
+      type: accomplishmentForm.type as 'big' | 'small',
+      category: accomplishmentForm.category.trim()
+    });
+  };
   const resetForms = () => {
     setPasswordForm({
       newPassword: '',
@@ -826,24 +869,27 @@ const Index = () => {
           {/* Waiting for week end */}
           {!isWeekEnd && weekAccomplishments.length > 0 && (
             <Card className="bg-glass-bg border-glass-border backdrop-blur-glass">
-              </CardTitle>
-              <CardDescription className="text-center text-lg">
+              <CardHeader>
                 <CardTitle className="text-2xl font-bold text-center flex items-center justify-center gap-2">
                   <Clock className="h-6 w-6" />
                   Accomplishments Locked
-            </CardHeader>
+                </CardTitle>
                 <CardDescription className="text-center">
                   Your accomplishments are safely recorded and will be revealed on Sunday evening. Keep adding more!
-                <p className="text-muted-foreground">
-                  Your accomplishment tracking system is ready! 
-                  The database has been set up with user profiles and proper security.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <div className="text-6xl mb-4">🔒</div>
+                  <p className="text-muted-foreground text-lg mb-4">
+                    {weekAccomplishments.length} accomplishment{weekAccomplishments.length !== 1 ? 's' : ''} recorded this week
+                  </p>
                   <p className="text-muted-foreground">
                     The big reveal happens at the end of the week!
                   </p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
           )}
         </div>
       </main>
