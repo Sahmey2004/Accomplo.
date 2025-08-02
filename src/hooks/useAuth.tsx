@@ -43,7 +43,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string, metadata?: any) => {
-    const redirectUrl = `${window.location.origin}/auth`;
+    // Use environment variable for production, fallback to current origin
+    const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+    const redirectUrl = `${baseUrl}/auth`;
     
     const { error } = await supabase.auth.signUp({
       email,
@@ -71,7 +73,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 
   const resetPassword = async (email: string) => {
-    const redirectUrl = `${window.location.origin}/auth?type=recovery`;
+    // Use environment variable for production, fallback to current origin
+    const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+    const redirectUrl = `${baseUrl}/auth?type=recovery`;
   
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: redirectUrl,
