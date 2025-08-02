@@ -253,7 +253,7 @@ export default function Auth() {
               </div>
               <Button 
                 type="submit" 
-                className="w-full bg-gradient-primary hover:opacity-90 transition-smooth"
+                className="w-full bg-gray-600 hover:bg-gray-700"
                 disabled={isLoading}
               >
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -307,7 +307,7 @@ export default function Auth() {
               </div>
               <Button 
                 type="submit" 
-                className="w-full bg-gradient-primary hover:opacity-90 transition-smooth"
+                className="w-full bg-gray-600 hover:bg-gray-700"
                 disabled={isLoading}
               >
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -408,7 +408,7 @@ export default function Auth() {
               </div>
               <Button 
                 type="submit" 
-                className="w-full bg-gradient-primary hover:opacity-90 transition-smooth"
+                className="w-full bg-gray-600 hover:bg-gray-700"
                 disabled={isLoading}
               >
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -496,7 +496,7 @@ export default function Auth() {
             </div>
             <Button 
               type="submit" 
-              className="w-full bg-gradient-primary hover:opacity-90 transition-smooth"
+              className="w-full bg-gray-600 hover:bg-gray-700"
               disabled={isLoading}
             >
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
