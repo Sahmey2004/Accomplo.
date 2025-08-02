@@ -626,9 +626,13 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-subtle">
       <header className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-14 items-center justify-between">
-          <h1 className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-            Accomplishment Tracker
-          </h1>
+          <div className="flex items-center">
+            <img 
+              src="/logo.png" 
+              alt="Accomplishment Tracker" 
+              className="h-8 w-auto"
+            />
+          </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-300">
               Welcome, {user?.user_metadata?.display_name || user?.email}
