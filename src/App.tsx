@@ -1,5 +1,6 @@
-import { useOfflineAuth } from '@/hooks/useOfflineAuth';
-import { useOfflineData } from '@/hooks/useOfflineData';
+import { useAuth } from '@/hooks/useAuth';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,16 +43,34 @@ interface WeekData {
   isRevealed: boolean;
 }
 
-const Index = () => {
-  const { user, signOut, updatePassword } = useOfflineAuth();
-  const { 
-    accomplishments: allAccomplishments, 
-    profile, 
-    addAccomplishment: addAccomplishmentToStorage,
-    isLoading: isLoadingAccomplishments 
-  } = useOfflineData();
+// Helper function to get week information
+const getWeekInfo = (date: Date) => {
+  const startOfWeek = new Date(date);
+  const day = startOfWeek.getDay();
+  const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+  startOfWeek.setDate(diff);
+  startOfWeek.setHours(0, 0, 0, 0);
+  
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 6);
+  endOfWeek.setHours(23, 59, 59, 999);
+  
+  const weekLabel = `${startOfWeek.toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric' 
+  })} - ${endOfWeek.toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric' 
+  })}`;
+  
+  return { startOfWeek, endOfWeek, weekLabel };
+};
+
+const App = () => {
+  const { user, signOut, updatePassword } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   // Settings state
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
@@ -79,7 +98,47 @@ const Index = () => {
   // Expanded weeks state
   const [expandedWeeks, setExpandedWeeks] = useState<Set<string>>(new Set());
 
-  // Get week info for any date
+  // Get current week info
+  const currentWeekInfo = getWeekInfo(new Date());
+  const weekLabel = currentWeekInfo.weekLabel;
+  const now = new Date();
+  const isWeekEnd = now.getDay() === 0 && now.getHours() >= 18; // Sunday after 6 PM
+
+  // Fetch profile
+  const { data: profile } = useQuery({
+    queryKey: ['profile'],
+    queryFn: async () => {
+      if (!user) return null;
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error) throw error;
+      return data as Profile;
+    },
+    enabled: !!user,
+  });
+
+  // Fetch accomplishments
+  const { data: allAccomplishments = [], isLoading: isLoadingAccomplishments } = useQuery({
+    queryKey: ['accomplishments'],
+    queryFn: async () => {
+      if (!profile) return [];
+      
+      const { data, error } = await supabase
+        .from('accomplishments')
+        .select('*')
+        .eq('profile_id', profile.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data as Accomplishment[];
+    },
+    enabled: !!profile,
+  });
 
   // Process accomplishments into weeks
   const weeklyData: WeekData[] = React.useMemo(() => {
@@ -870,4 +929,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default App;
