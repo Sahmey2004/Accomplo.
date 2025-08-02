@@ -247,7 +247,7 @@ export default function Auth() {
             )}
             <Button 
               type="submit" 
-              className="w-full bg-gradient-primary hover:opacity-90 transition-smooth"
+              className="p-0 text-sm text-primary hover:text-primary/80 underline"
               disabled={isLoading}
             >
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -321,6 +321,23 @@ export default function Auth() {
                 Back to Sign In
               </Button>
             )}
+          </div>
+          
+          <div className="text-center mt-4 p-4 bg-muted/30 rounded-lg border border-muted">
+            <p className="text-sm text-muted-foreground mb-2">
+              Need to reset your password?
+            </p>
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="w-full"
+              onClick={() => navigate('/auth?mode=reset')}
+            >
+              Reset Password via Email
+            </Button>
+            <p className="text-xs text-muted-foreground mt-2">
+              Enter your email address and we'll send you a secure link to reset your password
+            </p>
           </div>
 
           {mode === 'signin' && (
