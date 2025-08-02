@@ -630,7 +630,7 @@ const Index = () => {
             <img 
               src="/logo.png" 
               alt="Accomplishment Tracker" 
-              className="h-8 w-auto"
+              className="h-12 w-auto"
             />
           </div>
           <div className="flex items-center gap-4">
