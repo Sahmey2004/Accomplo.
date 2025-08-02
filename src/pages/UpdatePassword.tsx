@@ -1,82 +1,71 @@
-// src/components/UpdatePassword.tsx
-import React, { useState, FormEvent } from 'react'
-import { supabase } from '../utils/supabaseClient'
+import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
 
-const UpdatePassword: React.FC = () => {
-  const [newPassword, setNewPassword] = useState<string>('')
-  const [confirmPassword, setConfirmPassword] = useState<string>('')
-  const [loading, setLoading] = useState<boolean>(false)
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
-  const [successMsg, setSuccessMsg] = useState<string | null>(null)
+export default function UpdatePassword() {
+  const { updatePassword } = useAuth();
+  const { toast } = useToast();
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setErrorMsg(null)
-    setSuccessMsg(null)
-
-    if (newPassword.length < 6) {
-      setErrorMsg('Password must be at least 6 characters.')
-      return
-    }
-    if (newPassword !== confirmPassword) {
-      setErrorMsg('Passwords do not match.')
-      return
-    }
-
-    setLoading(true)
-    const { data, error } = await supabase.auth.updateUser({ password: newPassword })
-    setLoading(false)
-
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    const { error } = await updatePassword(password);
     if (error) {
-      setErrorMsg(error.message)
+      toast({
+        title: "Update failed",
+        description: error.message,
+        variant: "destructive",
+      });
     } else {
-      setSuccessMsg('Your password has been updated! 🎉')
-      setNewPassword('')
-      setConfirmPassword('')
+      toast({
+        title: "Password updated!",
+        description: "Your password has been changed.",
+      });
+      setPassword("");
     }
-  }
+    setIsLoading(false);
+  };
 
   return (
-    <div style={{ maxWidth: 400, margin: '2rem auto' }}>
-      <h2>Update Your Password</h2>
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '1rem' }}>
-          <label htmlFor="new-password">New Password</label>
-          <input
-            id="new-password"
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            required
-            style={{ width: '100%', padding: '0.5rem' }}
-          />
-        </div>
-
-        <div style={{ marginBottom: '1rem' }}>
-          <label htmlFor="confirm-password">Confirm Password</label>
-          <input
-            id="confirm-password"
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-            style={{ width: '100%', padding: '0.5rem' }}
-          />
-        </div>
-
-        {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
-        {successMsg && <p style={{ color: 'green' }}>{successMsg}</p>}
-
-        <button
-          type="submit"
-          disabled={loading}
-          style={{ padding: '0.5rem 1rem' }}
-        >
-          {loading ? 'Updating…' : 'Update Password'}
-        </button>
-      </form>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4">
+      <Card className="w-full max-w-md bg-glass-bg border-glass-border backdrop-blur-glass">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+            Update Password
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-password">New Password</Label>
+              <Input
+                id="new-password"
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+                placeholder="Enter new password"
+                className="bg-muted/50 border-muted"
+              />
+            </div>
+            <Button
+              type="submit"
+              className="w-full bg-gradient-primary hover:opacity-90 transition-smooth"
+              disabled={isLoading}
+            >
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Update Password
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
-  )
+  );
 }
-
-export default UpdatePassword
