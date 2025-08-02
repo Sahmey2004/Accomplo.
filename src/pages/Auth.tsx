@@ -218,7 +218,7 @@ export default function Auth() {
               />
             </div>
             <CardTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              Set New Password
+              <span className="text-gray-200">Set New Password</span>
             </CardTitle>
             <CardDescription>
               Your recovery link is valid. Enter your new password below.
@@ -284,7 +284,7 @@ export default function Auth() {
               />
             </div>
             <CardTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              Reset Password
+              <span className="text-gray-200">Reset Password</span>
             </CardTitle>
             <CardDescription>
               Enter your email address and we'll send you a reset link
@@ -318,7 +318,7 @@ export default function Auth() {
             <div className="mt-6 text-center">
               <Button 
                 variant="link" 
-                className="p-0 text-primary"
+                className="p-0 text-gray-300 hover:text-gray-100"
                 onClick={() => navigate('/auth')}
               >
                 ← Back to Sign In
@@ -348,7 +348,7 @@ export default function Auth() {
               />
             </div>
             <CardTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              Create Account
+              <span className="text-gray-200">Create Account</span>
             </CardTitle>
             <CardDescription>
               Enter your details to create an account
@@ -420,7 +420,7 @@ export default function Auth() {
               Already have an account?{' '}
               <Button 
                 variant="link" 
-                className="p-0 text-primary"
+                className="p-0 text-gray-300 hover:text-gray-100"
                 onClick={() => navigate('/auth')}
               >
                 Sign In
@@ -449,7 +449,7 @@ export default function Auth() {
             />
           </div>
           <CardTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-            Welcome Back
+            <span className="text-gray-200">Welcome Back</span>
           </CardTitle>
           <CardDescription>
             Sign in to your Accomplo account
@@ -508,7 +508,7 @@ export default function Auth() {
             <div className="text-center">
               <Button 
                 variant="link" 
-                className="p-0 text-primary font-medium"
+                className="p-0 text-gray-300 hover:text-gray-100 font-medium"
                 onClick={() => navigate('/auth?mode=reset')}
               >
                 Forgot your password?
@@ -519,7 +519,7 @@ export default function Auth() {
               Don't have an account?{' '}
               <Button 
                 variant="link" 
-                className="p-0 text-primary"
+                className="p-0 text-gray-300 hover:text-gray-100"
                 onClick={() => navigate('/auth?mode=signup')}
               >
                 Sign Up
