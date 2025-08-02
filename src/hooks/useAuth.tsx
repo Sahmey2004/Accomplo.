@@ -43,8 +43,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string, metadata?: any) => {
-    // Use environment variable for production, fallback to current origin
-    const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+    // Use the exact Vercel production URL
+    const baseUrl = 'https://accomplo-mmf444y2x-sahmey2004s-projects.vercel.app';
     const redirectUrl = `${baseUrl}/auth`;
     
     const { error } = await supabase.auth.signUp({
@@ -73,8 +73,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 
   const resetPassword = async (email: string) => {
-    // Use environment variable for production, fallback to current origin
-    const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+    // Use the exact Vercel production URL
+    const baseUrl = 'https://accomplo-mmf444y2x-sahmey2004s-projects.vercel.app';
     const redirectUrl = `${baseUrl}/auth?type=recovery`;
   
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
