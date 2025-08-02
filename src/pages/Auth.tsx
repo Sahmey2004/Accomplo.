@@ -7,13 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { Icons } from "@/components/icons";
 
 export default function Auth() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
-  const { user, signIn, signUp, resetPassword, signInWithGoogle, signInWithFacebook, updatePassword } = useAuth();
+  const { user, signIn, signUp, resetPassword, updatePassword } = useAuth();
   
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -43,12 +42,19 @@ export default function Auth() {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    
     const { error } = await signIn(formData.email, formData.password);
+    
     if (error) {
       toast({
         title: "Sign in failed",
         description: error.message,
         variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Welcome back!",
+        description: "You have successfully signed in.",
       });
     }
     setIsLoading(false);
@@ -57,9 +63,11 @@ export default function Auth() {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    
     const { error } = await signUp(formData.email, formData.password, {
-      displayName: formData.displayName,
+      display_name: formData.displayName,
     });
+    
     if (error) {
       toast({
         title: "Sign up failed",
@@ -69,7 +77,7 @@ export default function Auth() {
     } else {
       toast({
         title: "Check your email",
-        description: "We sent you a confirmation link",
+        description: "We sent you a confirmation link to complete your registration.",
       });
     }
     setIsLoading(false);
@@ -81,7 +89,7 @@ export default function Auth() {
     if (!formData.email) {
       toast({
         title: "Email required",
-        description: "Please enter your email address",
+        description: "Please enter your email address to reset your password.",
         variant: "destructive",
       });
       return;
@@ -89,6 +97,7 @@ export default function Auth() {
     
     setIsLoading(true);
     const { error } = await resetPassword(formData.email);
+    
     if (error) {
       toast({
         title: "Reset failed",
@@ -98,9 +107,8 @@ export default function Auth() {
     } else {
       toast({
         title: "Check your email",
-        description: "We sent you a password reset link",
+        description: "We sent you a password reset link. Please check your inbox and spam folder.",
       });
-      // Stay on reset page to show success message
       setFormData(prev => ({ ...prev, email: '' }));
     }
     setIsLoading(false);
@@ -108,8 +116,17 @@ export default function Auth() {
 
   const handleRecoverySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (formData.password.length < 6) {
+      toast({
+        title: "Password too short",
+        description: "Password must be at least 6 characters long.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsLoading(true);
-
     const { error } = await updatePassword(formData.password);
 
     if (error) {
@@ -120,8 +137,8 @@ export default function Auth() {
       });
     } else {
       toast({
-        title: "Password updated",
-        description: "Please sign in with your new password",
+        title: "Password updated successfully",
+        description: "Your password has been updated. You can now sign in with your new password.",
       });
       setFormData({ email: '', password: '', displayName: '' });
       navigate('/auth');
@@ -129,6 +146,7 @@ export default function Auth() {
     setIsLoading(false);
   };
 
+  // Password Recovery Form
   if (isRecovery) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4">
@@ -152,7 +170,7 @@ export default function Auth() {
                     type={showPassword ? "text" : "password"}
                     value={formData.password}
                     onChange={handleInputChange}
-                    placeholder="Enter your new password"
+                    placeholder="Enter your new password (min 6 characters)"
                     required
                     className="bg-muted/50 border-muted pr-10"
                     minLength={6}
@@ -183,26 +201,74 @@ export default function Auth() {
     );
   }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4">
-      <Card className="w-full max-w-md bg-glass-bg border-glass-border backdrop-blur-glass">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-            {mode === 'signup' ? 'Create Account' : mode === 'reset' ? 'Reset Password' : 'Welcome Back'}
-          </CardTitle>
-          <CardDescription>
-            {mode === 'signup' ? 'Enter your details to create an account' : 
-             mode === 'reset' ? 'Enter your email to receive a reset link' : 
-             'Enter your credentials to sign in'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={
-            mode === 'signup' ? handleSignUp : 
-            mode === 'reset' ? handleResetPassword : 
-            handleSignIn
-          } className="space-y-4">
-            {mode === 'signup' && (
+  // Reset Password Form
+  if (mode === 'reset') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4">
+        <Card className="w-full max-w-md bg-glass-bg border-glass-border backdrop-blur-glass">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+              Reset Password
+            </CardTitle>
+            <CardDescription>
+              Enter your email address and we'll send you a reset link
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder="Enter your email address"
+                  required
+                  className="bg-muted/50 border-muted"
+                />
+              </div>
+              <Button 
+                type="submit" 
+                className="w-full bg-gradient-primary hover:opacity-90 transition-smooth"
+                disabled={isLoading}
+              >
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Send Reset Link
+              </Button>
+            </form>
+
+            <div className="mt-6 text-center">
+              <Button 
+                variant="link" 
+                className="p-0 text-primary"
+                onClick={() => navigate('/auth')}
+              >
+                ← Back to Sign In
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Sign Up Form
+  if (mode === 'signup') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4">
+        <Card className="w-full max-w-md bg-glass-bg border-glass-border backdrop-blur-glass">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+              Create Account
+            </CardTitle>
+            <CardDescription>
+              Enter your details to create an account
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSignUp} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="displayName">Display Name</Label>
                 <Input
@@ -215,21 +281,19 @@ export default function Auth() {
                   className="bg-muted/50 border-muted"
                 />
               </div>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="Enter your email"
-                required
-                className="bg-muted/50 border-muted"
-              />
-            </div>
-            {mode !== 'reset' && (
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder="Enter your email"
+                  required
+                  className="bg-muted/50 border-muted"
+                />
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
@@ -239,7 +303,7 @@ export default function Auth() {
                     type={showPassword ? "text" : "password"}
                     value={formData.password}
                     onChange={handleInputChange}
-                    placeholder="Enter your password"
+                    placeholder="Enter your password (min 6 characters)"
                     required
                     className="bg-muted/50 border-muted pr-10"
                     minLength={6}
@@ -255,125 +319,115 @@ export default function Auth() {
                   </Button>
                 </div>
               </div>
-            )}
+              <Button 
+                type="submit" 
+                className="w-full bg-gradient-primary hover:opacity-90 transition-smooth"
+                disabled={isLoading}
+              >
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Create Account
+              </Button>
+            </form>
+
+            <div className="mt-6 text-center text-sm">
+              Already have an account?{' '}
+              <Button 
+                variant="link" 
+                className="p-0 text-primary"
+                onClick={() => navigate('/auth')}
+              >
+                Sign In
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Default Sign In Form
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4">
+      <Card className="w-full max-w-md bg-glass-bg border-glass-border backdrop-blur-glass">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+            Welcome Back
+          </CardTitle>
+          <CardDescription>
+            Sign in to your Accomplo account
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSignIn} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="Enter your email"
+                required
+                className="bg-muted/50 border-muted"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  placeholder="Enter your password"
+                  required
+                  className="bg-muted/50 border-muted pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
             <Button 
               type="submit" 
               className="w-full bg-gradient-primary hover:opacity-90 transition-smooth"
               disabled={isLoading}
             >
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {mode === 'signup' ? 'Sign Up' : mode === 'reset' ? 'Send Reset Link' : 'Sign In'}
+              Sign In
             </Button>
           </form>
 
-          {mode !== 'reset' && (
-            <>
-              <div className="relative my-4">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-glass-bg px-2 text-muted-foreground">
-                    Or continue with
-                  </span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <Button 
-                  variant="outline" 
-                  onClick={() => signInWithGoogle()}
-                  disabled={isLoading}
-                >
-                  <Icons.google className="mr-2 h-4 w-4" />
-                  Google
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => signInWithFacebook()}
-                  disabled={isLoading}
-                >
-                  <Icons.facebook className="mr-2 h-4 w-4" />
-                  Facebook
-                </Button>
-              </div>
-            </>
-          )}
-
-          <div className="mt-4 text-center text-sm">
-            {mode === 'signin' ? (
-              <>
-                Don't have an account?{' '}
-                <Button 
-                  variant="link" 
-                  className="p-0 text-primary"
-                  onClick={() => navigate('/auth?mode=signup')}
-                >
-                  Sign Up
-                </Button>
-              </>
-            ) : mode === 'signup' ? (
-              <>
-                Already have an account?{' '}
-                <Button 
-                  variant="link" 
-                  className="p-0 text-primary"
-                  onClick={() => navigate('/auth')}
-                >
-                  Sign In
-                </Button>
-              </>
-            ) : (
+          <div className="mt-6 space-y-4">
+            <div className="text-center">
               <Button 
                 variant="link" 
-                className="p-0 text-primary"
-                onClick={() => navigate('/auth')}
-              >
-                Back to Sign In
-              </Button>
-            )}
-            
-            {mode === 'reset' && (
-              <div className="mt-2">
-                <Button 
-                  variant="link" 
-                  className="p-0 text-sm text-muted-foreground"
-                  onClick={() => navigate('/auth')}
-                >
-                  Remember your password? Sign In
-                </Button>
-              </div>
-            )}
-          </div>
-          
-          <div className="text-center mt-4 p-4 bg-muted/30 rounded-lg border border-muted">
-            <p className="text-sm text-muted-foreground mb-2">
-              Need to reset your password?
-            </p>
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="w-full"
-              onClick={() => navigate('/auth?mode=reset')}
-            >
-              Reset Password via Email
-            </Button>
-            <p className="text-xs text-muted-foreground mt-2">
-              Enter your email address and we'll send you a secure link to reset your password
-            </p>
-          </div>
-
-          {mode === 'signin' && (
-            <div className="text-center mt-2">
-              <Button 
-                variant="link" 
-                className="p-0 text-sm text-muted-foreground"
+                className="p-0 text-primary font-medium"
                 onClick={() => navigate('/auth?mode=reset')}
               >
                 Forgot your password?
               </Button>
             </div>
-          )}
+            
+            <div className="text-center text-sm">
+              Don't have an account?{' '}
+              <Button 
+                variant="link" 
+                className="p-0 text-primary"
+                onClick={() => navigate('/auth?mode=signup')}
+              >
+                Sign Up
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
