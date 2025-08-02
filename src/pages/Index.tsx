@@ -630,7 +630,7 @@ const Index = () => {
             Accomplishment Tracker
           </h1>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">
+            <span className="text-sm text-gray-300">
               Welcome, {user?.user_metadata?.display_name || user?.email}
             </span>
             <Dialog open={isSettingsDialogOpen} onOpenChange={setIsSettingsDialogOpen}>
@@ -662,7 +662,7 @@ const Index = () => {
                     <Calendar className="h-6 w-6" />
                     {weekLabel}
                   </CardTitle>
-                  <CardDescription className="mt-2">
+                  <CardDescription className="mt-2 text-gray-300">
                     {isWeekEnd 
                       ? "🎉 Week complete! Your accomplishments are now revealed below."
                       : "Keep going! Your accomplishments will be revealed at the end of the week."
@@ -765,7 +765,7 @@ const Index = () => {
                   <div className="text-3xl font-bold text-primary mb-2">
                     {isLoadingAccomplishments ? '...' : currentWeekAccomplishments?.length || 0}
                   </div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-sm text-gray-300">
                     Total This Week
                   </div>
                 </div>
@@ -774,7 +774,7 @@ const Index = () => {
                   <div className="text-3xl font-bold text-yellow-500 mb-2">
                     {isLoadingAccomplishments ? '...' : currentWeekAccomplishments?.filter(a => a.type === 'big').length || 0}
                   </div>
-                  <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
+                  <div className="text-sm text-gray-300 flex items-center justify-center gap-1">
                     <Trophy className="h-4 w-4" />
                     Big Achievements
                   </div>
@@ -784,7 +784,7 @@ const Index = () => {
                   <div className="text-3xl font-bold text-blue-500 mb-2">
                     {isLoadingAccomplishments ? '...' : currentWeekAccomplishments?.filter(a => a.type === 'small').length || 0}
                   </div>
-                  <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
+                  <div className="text-sm text-gray-300 flex items-center justify-center gap-1">
                     <Star className="h-4 w-4" />
                     Small Wins
                   </div>
@@ -799,15 +799,15 @@ const Index = () => {
               <Card className="bg-glass-bg border-glass-border backdrop-blur-glass">
                 <CardContent className="text-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary mb-4" />
-                  <p className="text-muted-foreground">Loading your accomplishments...</p>
+                  <p className="text-gray-300">Loading your accomplishments...</p>
                 </CardContent>
               </Card>
             ) : weeklyData.length === 0 ? (
               <Card className="bg-glass-bg border-glass-border backdrop-blur-glass mb-8">
                 <CardContent className="text-center py-12">
                   <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Ready to Start Tracking?</h3>
-                  <p className="text-muted-foreground mb-6">
+                  <h3 className="text-lg font-semibold mb-2 text-white">Ready to Start Tracking?</h3>
+                  <p className="text-gray-300 mb-6">
                     Record your first accomplishment! Your achievements will be revealed at the end of each week.
                   </p>
                 </CardContent>
@@ -830,7 +830,7 @@ const Index = () => {
                                 <Badge variant="secondary" className="ml-2">Current Week</Badge>
                               )}
                             </CardTitle>
-                            <CardDescription>
+                            <CardDescription className="text-gray-300">
                               {week.accomplishments.length} accomplishment{week.accomplishments.length !== 1 ? 's' : ''} recorded
                               {week.isCurrentWeek && !week.isRevealed && (
                                 <span className="ml-2">• Reveals Sunday evening</span>
@@ -841,7 +841,7 @@ const Index = () => {
                         
                         <div className="flex items-center gap-2">
                           {/* Week stats */}
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground mr-4">
+                          <div className="flex items-center gap-4 text-sm text-gray-400 mr-4">
                             <div className="flex items-center gap-1">
                               <Trophy className="h-4 w-4 text-yellow-500" />
                               <span>{week.accomplishments.filter(a => a.type === 'big').length}</span>
@@ -874,10 +874,10 @@ const Index = () => {
                         <div className="text-center py-8">
                           <div className="text-4xl mb-4">🔒</div>
                           <div className="space-y-2">
-                            <p className="text-muted-foreground font-medium">
+                            <p className="text-gray-300 font-medium">
                               {week.accomplishments.length} accomplishment{week.accomplishments.length !== 1 ? 's' : ''} recorded this week
                             </p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-sm text-gray-400">
                             {week.isCurrentWeek 
                               ? "Your accomplishments will be revealed on Sunday after 6 PM!"
                               : "Accomplishments were locked until week end"
@@ -905,12 +905,12 @@ const Index = () => {
                                     <Badge variant={accomplishment.type === 'big' ? 'default' : 'secondary'}>
                                       {accomplishment.type === 'big' ? 'Big Achievement' : 'Small Win'}
                                     </Badge>
-                                    <span className="text-sm text-muted-foreground">
+                                    <span className="text-sm text-gray-400">
                                       {new Date(accomplishment.created_at).toLocaleDateString()}
                                     </span>
                                   </div>
-                                  <p className="text-foreground mb-2">{accomplishment.content}</p>
-                                  <p className="text-sm text-muted-foreground italic">
+                                  <p className="text-white mb-2">{accomplishment.content}</p>
+                                  <p className="text-sm text-gray-400 italic">
                                     About: {accomplishment.category}
                                   </p>
                                 </div>
@@ -920,7 +920,7 @@ const Index = () => {
                         </div>
                       ) : (
                         <div className="text-center py-4">
-                          <p className="text-muted-foreground">
+                          <p className="text-gray-300">
                             Click to expand and view {week.accomplishments.length} accomplishment{week.accomplishments.length !== 1 ? 's' : ''}
                           </p>
                         </div>
