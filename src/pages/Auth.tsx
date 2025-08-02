@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ export default function Auth() {
   
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isRecoveryReady, setIsRecoveryReady] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -26,6 +28,43 @@ export default function Auth() {
   const mode = searchParams.get('mode') || 'signin';
   const isRecovery = type === 'recovery';
 
+  // Handle recovery token from URL hash
+  useEffect(() => {
+    if (isRecovery) {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+      
+      if (accessToken && refreshToken) {
+        // Set the session with the recovery tokens
+        supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        }).then(({ error }) => {
+          if (error) {
+            console.error('Error setting recovery session:', error);
+            toast({
+              title: "Recovery link invalid",
+              description: "This recovery link is invalid or has expired. Please request a new one.",
+              variant: "destructive",
+            });
+            navigate('/auth?mode=reset');
+          } else {
+            setIsRecoveryReady(true);
+            // Clear the hash from URL for security
+            window.history.replaceState(null, '', window.location.pathname + window.location.search);
+          }
+        });
+      } else {
+        toast({
+          title: "Invalid recovery link",
+          description: "This recovery link is missing required information. Please request a new one.",
+          variant: "destructive",
+        });
+        navigate('/auth?mode=reset');
+      }
+    }
+  }, [isRecovery, navigate, toast]);
   useEffect(() => {
     if (user && !isRecovery) {
       navigate('/');
@@ -148,6 +187,21 @@ export default function Auth() {
 
   // Password Recovery Form
   if (isRecovery) {
+    if (!isRecoveryReady) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4">
+          <Card className="w-full max-w-md bg-glass-bg border-glass-border backdrop-blur-glass">
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+                <p className="mt-4 text-muted-foreground">Verifying recovery link...</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4">
         <Card className="w-full max-w-md bg-glass-bg border-glass-border backdrop-blur-glass">
@@ -156,7 +210,7 @@ export default function Auth() {
               Set New Password
             </CardTitle>
             <CardDescription>
-              Enter your new password below
+              Your recovery link is valid. Enter your new password below.
             </CardDescription>
           </CardHeader>
           <CardContent>
