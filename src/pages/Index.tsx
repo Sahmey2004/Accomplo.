@@ -629,7 +629,7 @@ const Index = () => {
           <div className="flex items-center">
             <div className="flex items-center">
               <img 
-                src="/logo.png" 
+                src="https://ik.imagekit.io/1de4hfu56k/logo.png?updatedAt=1754163451179" 
                 alt="Accomplo Logo" 
                 className="h-12 w-auto"
                 onError={(e) => {
