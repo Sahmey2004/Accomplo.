@@ -5,19 +5,25 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, Loader2, Settings } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Settings, User, Lock } from 'lucide-react';
 import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
   const { user, signOut, updatePassword } = useAuth();
   const { toast } = useToast();
-  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+  const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
+  const [settingsView, setSettingsView] = useState<'main' | 'password' | 'username'>('main');
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [isUpdatingUsername, setIsUpdatingUsername] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
     newPassword: '',
     confirmPassword: ''
+  });
+  const [usernameForm, setUsernameForm] = useState({
+    displayName: ''
   });
 
   const handleSignOut = async () => {
@@ -26,6 +32,13 @@ const Index = () => {
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPasswordForm(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
+  };
+
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUsernameForm(prev => ({
       ...prev,
       [e.target.name]: e.target.value
     }));
@@ -70,9 +83,252 @@ const Index = () => {
         newPassword: '',
         confirmPassword: ''
       });
-      setIsPasswordDialogOpen(false);
+      setSettingsView('main');
     }
     setIsUpdatingPassword(false);
+  };
+
+  const handleUpdateUsername = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!usernameForm.displayName.trim()) {
+      toast({
+        title: "Username required",
+        description: "Please enter a display name",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUpdatingUsername(true);
+    const { error } = await supabase.auth.updateUser({
+      data: { display_name: usernameForm.displayName.trim() }
+    });
+    
+    if (error) {
+      toast({
+        title: "Update failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Success",
+        description: "Your display name has been updated successfully",
+      });
+      setUsernameForm({
+        displayName: ''
+      });
+      setSettingsView('main');
+    }
+    setIsUpdatingUsername(false);
+  };
+
+  const resetForms = () => {
+    setPasswordForm({
+      newPassword: '',
+      confirmPassword: ''
+    });
+    setUsernameForm({
+      displayName: ''
+    });
+    setSettingsView('main');
+  };
+
+  const renderSettingsContent = () => {
+    switch (settingsView) {
+      case 'password':
+        return (
+          <>
+            <DialogHeader>
+              <DialogTitle>Change Password</DialogTitle>
+              <DialogDescription>
+                Enter your new password. Make sure to use a strong password.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleUpdatePassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="new-password">New Password</Label>
+                <div className="relative">
+                  <Input
+                    id="new-password"
+                    name="newPassword"
+                    type={showNewPassword ? "text" : "password"}
+                    value={passwordForm.newPassword}
+                    onChange={handlePasswordChange}
+                    placeholder="Enter new password (min 6 characters)"
+                    required
+                    minLength={6}
+                    className="pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                  >
+                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirm-password">Confirm New Password</Label>
+                <div className="relative">
+                  <Input
+                    id="confirm-password"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={passwordForm.confirmPassword}
+                    onChange={handlePasswordChange}
+                    placeholder="Confirm new password"
+                    required
+                    minLength={6}
+                    className="pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+              <div className="flex justify-between gap-3 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setSettingsView('main')}
+                >
+                  ← Back
+                </Button>
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setIsSettingsDialogOpen(false);
+                      resetForms();
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={isUpdatingPassword}
+                    className="bg-gradient-primary hover:opacity-90"
+                  >
+                    {isUpdatingPassword && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Update Password
+                  </Button>
+                </div>
+              </div>
+            </form>
+          </>
+        );
+
+      case 'username':
+        return (
+          <>
+            <DialogHeader>
+              <DialogTitle>Change Display Name</DialogTitle>
+              <DialogDescription>
+                Update your display name. This is how others will see you.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleUpdateUsername} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="display-name">Display Name</Label>
+                <Input
+                  id="display-name"
+                  name="displayName"
+                  type="text"
+                  value={usernameForm.displayName}
+                  onChange={handleUsernameChange}
+                  placeholder={`Current: ${user?.user_metadata?.display_name || user?.email || 'Not set'}`}
+                  required
+                />
+              </div>
+              <div className="flex justify-between gap-3 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setSettingsView('main')}
+                >
+                  ← Back
+                </Button>
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setIsSettingsDialogOpen(false);
+                      resetForms();
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={isUpdatingUsername}
+                    className="bg-gradient-primary hover:opacity-90"
+                  >
+                    {isUpdatingUsername && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Update Name
+                  </Button>
+                </div>
+              </div>
+            </form>
+          </>
+        );
+
+      default:
+        return (
+          <>
+            <DialogHeader>
+              <DialogTitle>Settings</DialogTitle>
+              <DialogDescription>
+                Manage your account settings and preferences.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3 py-4">
+              <Button
+                variant="outline"
+                className="w-full justify-start h-12"
+                onClick={() => setSettingsView('password')}
+              >
+                <Lock className="h-4 w-4 mr-3" />
+                <div className="text-left">
+                  <div className="font-medium">Change Password</div>
+                  <div className="text-sm text-muted-foreground">Update your account password</div>
+                </div>
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start h-12"
+                onClick={() => setSettingsView('username')}
+              >
+                <User className="h-4 w-4 mr-3" />
+                <div className="text-left">
+                  <div className="font-medium">Change Display Name</div>
+                  <div className="text-sm text-muted-foreground">Update how others see your name</div>
+                </div>
+              </Button>
+            </div>
+            <div className="flex justify-end pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setIsSettingsDialogOpen(false)}
+              >
+                Close
+              </Button>
+            </div>
+          </>
+        );
+    }
   };
   return (
     <div className="min-h-screen bg-gradient-subtle">
@@ -85,7 +341,7 @@ const Index = () => {
             <span className="text-sm text-muted-foreground">
               Welcome, {user?.user_metadata?.display_name || user?.email}
             </span>
-            <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
+            <Dialog open={isSettingsDialogOpen} onOpenChange={setIsSettingsDialogOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm">
                   <Settings className="h-4 w-4 mr-2" />
@@ -93,87 +349,7 @@ const Index = () => {
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Update Password</DialogTitle>
-                  <DialogDescription>
-                    Enter your new password. Make sure to use a strong password.
-                  </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleUpdatePassword} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="new-password">New Password</Label>
-                    <div className="relative">
-                      <Input
-                        id="new-password"
-                        name="newPassword"
-                        type={showNewPassword ? "text" : "password"}
-                        value={passwordForm.newPassword}
-                        onChange={handlePasswordChange}
-                        placeholder="Enter new password (min 6 characters)"
-                        required
-                        minLength={6}
-                        className="pr-10"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                        onClick={() => setShowNewPassword(!showNewPassword)}
-                      >
-                        {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="confirm-password">Confirm New Password</Label>
-                    <div className="relative">
-                      <Input
-                        id="confirm-password"
-                        name="confirmPassword"
-                        type={showConfirmPassword ? "text" : "password"}
-                        value={passwordForm.confirmPassword}
-                        onChange={handlePasswordChange}
-                        placeholder="Confirm new password"
-                        required
-                        minLength={6}
-                        className="pr-10"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      >
-                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="flex justify-end gap-3 pt-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        setIsPasswordDialogOpen(false);
-                        setPasswordForm({
-                          newPassword: '',
-                          confirmPassword: ''
-                        });
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={isUpdatingPassword}
-                      className="bg-gradient-primary hover:opacity-90"
-                    >
-                      {isUpdatingPassword && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Update Password
-                    </Button>
-                  </div>
-                </form>
+                {renderSettingsContent()}
               </DialogContent>
             </Dialog>
             <Button variant="outline" onClick={handleSignOut}>
