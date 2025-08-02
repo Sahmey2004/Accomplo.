@@ -77,6 +77,16 @@ export default function Auth() {
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.email) {
+      toast({
+        title: "Email required",
+        description: "Please enter your email address",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsLoading(true);
     const { error } = await resetPassword(formData.email);
     if (error) {
@@ -90,7 +100,8 @@ export default function Auth() {
         title: "Check your email",
         description: "We sent you a password reset link",
       });
-      navigate('/auth');
+      // Stay on reset page to show success message
+      setFormData(prev => ({ ...prev, email: '' }));
     }
     setIsLoading(false);
   };
@@ -247,7 +258,7 @@ export default function Auth() {
             )}
             <Button 
               type="submit" 
-              className="p-0 text-sm text-primary hover:text-primary/80 underline"
+              className="w-full bg-gradient-primary hover:opacity-90 transition-smooth"
               disabled={isLoading}
             >
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -320,6 +331,18 @@ export default function Auth() {
               >
                 Back to Sign In
               </Button>
+            )}
+            
+            {mode === 'reset' && (
+              <div className="mt-2">
+                <Button 
+                  variant="link" 
+                  className="p-0 text-sm text-muted-foreground"
+                  onClick={() => navigate('/auth')}
+                >
+                  Remember your password? Sign In
+                </Button>
+              </div>
             )}
           </div>
           
