@@ -78,9 +78,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error };
   };
 
-  const updatePassword = async (newPassword: string) => {
-  const { error } = await supabase.auth.updateUser({ password: newPassword });
-  return { error };
+ const updatePassword = async (newPassword: string) => {
+  try {
+    const { error } = await supabase.auth.updateUser({ 
+      password: newPassword 
+    });
+    return { error };
+  } catch (error) {
+    return { error };
+  }
 };
 
   const signInWithGoogle = async () => {
