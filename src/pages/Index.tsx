@@ -13,11 +13,9 @@ const Index = () => {
   const { toast } = useToast();
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
-    currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
@@ -69,7 +67,6 @@ const Index = () => {
         description: "Your password has been updated successfully",
       });
       setPasswordForm({
-        currentPassword: '',
         newPassword: '',
         confirmPassword: ''
       });
@@ -99,34 +96,10 @@ const Index = () => {
                 <DialogHeader>
                   <DialogTitle>Update Password</DialogTitle>
                   <DialogDescription>
-                    Change your account password. Make sure to use a strong password.
+                    Enter your new password. Make sure to use a strong password.
                   </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleUpdatePassword} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="current-password">Current Password</Label>
-                    <div className="relative">
-                      <Input
-                        id="current-password"
-                        name="currentPassword"
-                        type={showCurrentPassword ? "text" : "password"}
-                        value={passwordForm.currentPassword}
-                        onChange={handlePasswordChange}
-                        placeholder="Enter current password"
-                        required
-                        className="pr-10"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                      >
-                        {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="new-password">New Password</Label>
                     <div className="relative">
@@ -184,7 +157,6 @@ const Index = () => {
                       onClick={() => {
                         setIsPasswordDialogOpen(false);
                         setPasswordForm({
-                          currentPassword: '',
                           newPassword: '',
                           confirmPassword: ''
                         });
