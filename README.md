@@ -4,11 +4,11 @@ A beautiful, modern web application for tracking your personal accomplishments a
 
 ## Features
 
-- 🎯 **Track Accomplishments** - Record your achievements by category and time period
-- 🔐 **Secure Authentication** - Email/password authentication with password reset
-- 📱 **Responsive Design** - Works perfectly on desktop and mobile devices
-- 🎨 **Modern UI** - Beautiful design with smooth animations and transitions
-- ☁️ **Cloud Database** - Powered by Supabase for reliable data storage
+-  **Track Accomplishments** - Record your achievements by category and time period
+-  **Secure Authentication** - Email/password authentication with password reset
+-  **Responsive Design** - Works perfectly on desktop and mobile devices
+-  **Modern UI** - Beautiful design with smooth animations and transitions
+-  **Cloud Database** - Powered by Supabase for reliable data storage
 
 ## Tech Stack
 
