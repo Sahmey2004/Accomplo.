@@ -102,11 +102,6 @@ The application uses Supabase with the following main tables:
 
 The application is deployed on Vercel with automatic deployments from the main branch.
 
-### Deploy to Vercel
-
-1. Connect your GitHub repository to Vercel
-2. Configure environment variables in Vercel dashboard
-3. Deploy automatically on push to main branch
 
 ## Contributing
 
