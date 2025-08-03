@@ -25,71 +25,27 @@ A beautiful, modern web application for tracking your personal accomplishments a
 - Node.js 18+ 
 - npm or yarn
 
-### Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/accomplo.git
-cd accomplo
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Set up environment variables:
-```bash
-cp .env.example .env.local
-```
-
-4. Start the development server:
-```bash
-npm run dev
-```
-
-5. Open [http://localhost:8080](http://localhost:8080) in your browser.
 
 ## Project Structure
 
 ```
 src/
-├── components/          # Reusable UI components
+├── components/         # Reusable UI components
 │   ├── ui/             # Base UI components (buttons, inputs, etc.)
 │   └── ProtectedRoute.tsx
 ├── hooks/              # Custom React hooks
 │   ├── useAuth.tsx     # Authentication hook
-│   └── use-toast.ts    # Toast notifications
-├── integrations/       # External service integrations
-│   └── supabase/       # Supabase client and types
+│   └── use-toast.ts    
+├── integrations/       
+│   └── supabase/       
 ├── pages/              # Page components
 │   ├── Auth.tsx        # Authentication page
 │   ├── Index.tsx       # Main dashboard
 │   └── NotFound.tsx    # 404 page
-├── lib/                # Utility functions
-└── styles/             # Global styles
+├── lib/                
+└── styles/             
 ```
 
-## Features in Detail
-
-### Authentication
-- Email/password sign up and sign in
-- Password reset via email
-- Protected routes
-- Automatic session management
-
-### Accomplishment Tracking
-- Create accomplishments by category
-- Organize by month/year
-- Rich text content support
-- Personal dashboard view
-
-### Design System
-- Consistent color palette with CSS custom properties
-- Responsive breakpoints
-- Smooth animations and transitions
-- Glass morphism effects
-- Dark theme optimized
 
 ## Database Schema
 
@@ -103,13 +59,6 @@ The application uses Supabase with the following main tables:
 The application is deployed on Vercel with automatic deployments from the main branch.
 
 
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'Add amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
 
 ## License
 
@@ -121,4 +70,4 @@ If you have any questions or need help, please open an issue on GitHub.
 
 ---
 
-Built with ❤️ using React, TypeScript, and Supabase.
+Built using React, TypeScript, and Supabase.
