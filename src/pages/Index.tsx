@@ -85,14 +85,9 @@ const Index = () => {
     endOfWeek.setDate(startOfWeek.getDate() + 6); // Saturday
     endOfWeek.setHours(23, 59, 59, 999);
     
-    // Check if it's Sunday after 6 PM (week end reveal time)
-    const now = new Date();
-    const isWeekEnd = now.getDay() === 0 && now.getHours() >= 18;
-    
     return {
       startOfWeek,
       endOfWeek,
-      isWeekEnd,
       weekLabel: `Week of ${startOfWeek.toLocaleDateString()}`
     };
   };
@@ -103,7 +98,7 @@ const Index = () => {
     return getWeekInfo(now);
   };
 
-  const { startOfWeek, endOfWeek, isWeekEnd, weekLabel } = getCurrentWeekInfo();
+  const { startOfWeek, endOfWeek, weekLabel } = getCurrentWeekInfo();
 
   // Fetch user profile
   const { data: profile } = useQuery({
@@ -188,8 +183,8 @@ const Index = () => {
       
       // Reveal logic: 
       // - Past weeks are always revealed
-      // - Current week is always locked
-      const isRevealed = !isCurrentWeek;
+      // - Current week is locked until it ends (Sunday at midnight)
+      const isRevealed = now > weekInfo.endOfWeek;
       
       return {
         weekStart: weekInfo.startOfWeek,
@@ -673,9 +668,9 @@ const Index = () => {
                     {weekLabel}
                   </CardTitle>
                   <CardDescription className="mt-2 text-gray-300">
-                    {isWeekEnd 
+                    {weeklyData.find(week => week.isCurrentWeek)?.isRevealed
                       ? "🎉 Week complete! Your accomplishments are now revealed below."
-                      : "Keep going! Your accomplishments will be revealed at the end of the week."
+                      : "Keep going! Your accomplishments will be revealed after midnight tonight (Sunday)."
                     }
                   </CardDescription>
                 </div>
@@ -891,7 +886,7 @@ const Index = () => {
                             </p>
                             <p className="text-sm text-gray-400">
                             {week.isCurrentWeek 
-                              ? "Your accomplishments will be revealed on Sunday after 6 PM!"
+                              ? "Your accomplishments will be revealed after midnight tonight (Sunday)!"
                               : "Accomplishments were locked until week end"
                             }
                             </p>
