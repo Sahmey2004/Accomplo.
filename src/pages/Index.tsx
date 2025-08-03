@@ -188,8 +188,8 @@ const Index = () => {
       
       // Reveal logic: 
       // - Past weeks are always revealed
-      // - Current week is revealed only on Sunday after 6 PM
-      const isRevealed = !isCurrentWeek || (isCurrentWeek && now.getDay() === 0 && now.getHours() >= 18);
+      // - Current week is always locked
+      const isRevealed = !isCurrentWeek;
       
       return {
         weekStart: weekInfo.startOfWeek,
